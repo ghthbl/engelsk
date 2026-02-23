@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Engelsk Verb-trener</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --bg: #ecf0f1;
+            --card: #ffffff;
+            --text-muted: #7f8c8d;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 500px;
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; font-weight: bold; }
+
+        .display-box {
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        .label { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
+        
+        .main-word { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 15px; }
+
+        .sub-word { font-size: 1.4rem; color: #2980b9; margin-bottom: 20px; font-style: italic; }
+
+        .table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; }
+        .table td { padding: 10px 5px; border-bottom: 1px solid #f0f0f0; font-size: 1.05rem; }
+        .row-title { color: var(--text-muted); font-weight: 600; width: 35%; font-size: 0.9rem; }
+
+        button {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1a252f;
+        }
+
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a252f; }
+
+        .hidden { display: none; }
+        .invisible { visibility: hidden; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header" id="counter">Ord: 1 / 35</div>
+    
+    <div class="display-box">
+        <div id="step0">
+            <div class="label" id="dir-label">Oversett:</div>
+            <div class="main-word" id="word-prompt">...</div>
+        </div>
+
+        <div id="step1" class="hidden">
+            <div class="label">Oversettelse (Infinitiv):</div>
+            <div class="sub-word" id="inf-trans">...</div>
+        </div>
+
+        <div id="step2" class="hidden">
+            <table class="table">
+                <tr><td class="row-title">Presens:</td><td id="row-pres"></td></tr>
+                <tr><td class="row-title">Preteritum:</td><td id="row-pret"></td></tr>
+                <tr><td class="row-title">Perfektum:</td><td id="row-perf"></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <button onclick="nextStep()">NEXT</button>
+</div>
+
+<script>
+    const verbs = [
+        { no: "å løpe", en: "run", past: "ran", perf: "run", s3: "runs" },
+        { no: "å koste", en: "cost", past: "cost", perf: "cost", s3: "costs" },
+        { no: "å stige", en: "rise", past: "rose", perf: "risen", s3: "rises" },
+        { no: "å komme", en: "come", past: "came", perf: "come", s3: "comes" },
+        { no: "å ringe", en: "ring", past: "rang", perf: "rung", s3: "rings" },
+        { no: "å velge", en: "choose", past: "chose", perf: "chosen", s3: "chooses" },
+        { no: "å ri", en: "ride", past: "rode", perf: "ridden", s3: "rides" },
+        { no: "å fange", en: "catch", past: "caught", perf: "caught", s3: "catches" },
+        { no: "å lese", en: "read", past: "read", perf: "read", s3: "reads" },
+        { no: "å kjøpe", en: "buy", past: "bought", perf: "bought", s3: "buys" },
+        { no: "å sette", en: "put", past: "put", perf: "put", s3: "puts" },
+        { no: "å brenne", en: "burn", past: "burnt", perf: "burnt", s3: "burns" },
+        { no: "å betale", en: "pay", past: "paid", perf: "paid", s3: "pays" },
+        { no: "å bygge", en: "build", past: "built", perf: "built", s3: "builds" },
+        { no: "å møte", en: "meet", past: "met", perf: "met", s3: "meets" },
+        { no: "å bringe", en: "bring", past: "brought", perf: "brought", s3: "brings" },
+        { no: "å mene", en: "mean", past: "meant", perf: "meant", s3: "means" },
+        { no: "å knuse", en: "break", past: "broke", perf: "broken", s3: "breaks" },
+        { no: "å lage", en: "make", past: "made", perf: "made", s3: "makes" },
+        { no: "å kringkaste", en: "broadcast", past: "broadcast", perf: "broadcast", s3: "broadcasts" },
+        { no: "å miste", en: "lose", past: "lost", perf: "lost", s3: "loses" },
+        { no: "å blåse", en: "blow", past: "blew", perf: "blown", s3: "blows" },
+        { no: "å ligge", en: "lie", past: "lay", perf: "lain", s3: "lies" },
+        { no: "å bite", en: "bite", past: "bit", perf: "bitten", s3: "bites" },
+        { no: "å la", en: "let", past: "let", perf: "let", s3: "lets" },
+        { no: "å vedde", en: "bet", past: "bet", perf: "bet", s3: "bets" },
+        { no: "å låne bort", en: "lend", past: "lent", perf: "lent", s3: "lends" },
+        { no: "å begynne", en: "begin", past: "began", perf: "begun", s3: "begins" },
+        { no: "å bli", en: "become", past: "became", perf: "become", s3: "becomes" },
+        { no: "å forlate", en: "leave", past: "left", perf: "left", s3: "leaves" },
+        { no: "å slå", en: "beat", past: "beat", perf: "beaten", s3: "beats" },
+        { no: "å lære", en: "learn", past: "learnt", perf: "learnt", s3: "learns" },
+        { no: "å lede", en: "lead", past: "led", perf: "led", s3: "leads" },
+        { no: "å bære", en: "bear", past: "bore", perf: "born", s3: "bears" },
+        { no: "å vite", en: "know", past: "knew", perf: "known", s3: "knows" }
+    ];
+
+    let currentIndex = 0;
+    let currentStep = 0;
+    let isNoToEn = true;
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    shuffle(verbs);
+
+    function updateUI() {
+        const verb = verbs[currentIndex];
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const counter = document.getElementById('counter');
+
+        counter.innerText = `Ord: ${currentIndex + 1} / ${verbs.length}`;
+
+        if (currentStep === 0) {
+            isNoToEn = Math.random() < 0.5;
+            document.getElementById('dir-label').innerText = isNoToEn ? "Hva er engelsk for:" : "Hva er norsk for:";
+            document.getElementById('word-prompt').innerText = isNoToEn ? verb.no : verb.en;
+            step1.classList.add('hidden');
+            step2.classList.add('hidden');
+        } 
+        else if (currentStep === 1) {
+            document.getElementById('inf-trans').innerText = isNoToEn ? verb.en : verb.no;
+            step1.classList.remove('hidden');
+        } 
+        else if (currentStep === 2) {
+            // Presens: she meets / they meet
+            document.getElementById('row-pres').innerText = `she ${verb.s3} / they ${verb.en}`;
+            // Preteritum: she/they met
+            document.getElementById('row-pret').innerText = `she/they ${verb.past}`;
+            // Perfektum: she has met / they have met
+            document.getElementById('row-perf').innerText = `has/have ${verb.perf}`;
+            step2.classList.remove('hidden');
+        }
+    }
+
+    function nextStep() {
+        currentStep++;
+        if (currentStep > 2) {
+            currentStep = 0;
+            currentIndex++;
+            if (currentIndex >= verbs.length) {
+                currentIndex = 0;
+                shuffle(verbs);
+            }
+        }
+        updateUI();
+    }
+
+    updateUI();
+</script>
+</body>
+</html>
